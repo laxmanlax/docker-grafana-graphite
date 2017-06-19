@@ -1,0 +1,32 @@
+logging.level: info
+logging.to_files: true
+logging.to_syslog: false
+logging.files:
+  path: /var/log/mybeat
+  name: mybeat.log
+  keepfiles: 7
+####debug output
+output.file:
+  path: "/tmp/heartbeat"
+  filename: heartbeat
+  #rotate_every_kb: 10000
+  #number_of_files: 7
+heartbeat.monitors:
+#- type: icmp
+#  schedule: '*/5 * * * * * *' 
+#  hosts: ["myhost"]
+- type: tcp
+  schedule: '@every 5s' 
+  hosts: ["ns354179.ip-91-121-101.eu:80"]
+  mode: any
+
+#----------------------------- Logstash output --------------------------------
+output.logstash:
+  hosts: ["0.0.0.0:5044"]
+
+#----------------------------- ES output --------------------------------
+#output.elasticsearch:
+#  hosts: ["0.0.0.0:9200"]
+
+#example output
+#{"message":"ok","host":"example.com","@version":"1","@timestamp":"2015-03-18T17:05:24.696Z","type":"heartbeat"}

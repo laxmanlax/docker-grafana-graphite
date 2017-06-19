@@ -1,0 +1,20 @@
+metricbeat.modules:
+- module: system
+  metricsets:
+    - cpu
+    - filesystem
+    - memory
+    - network
+    - process
+  enabled: true
+  period: 10s
+  processes: ['.*']
+  cpu_ticks: false
+
+#----------------------------- Logstash output --------------------------------
+output.logstash:
+  hosts: ["0.0.0.0:5044"]
+
+#----------------------------- ES output --------------------------------
+#output.elasticsearch:
+#  hosts: ["0.0.0.0:9200"]

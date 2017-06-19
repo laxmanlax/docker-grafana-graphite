@@ -44,12 +44,42 @@ RUN     git clone https://github.com/etsy/statsd.git /src/statsd                
 
 
 # Install Grafana
-RUN     mkdir /src/grafana                                                                                    &&\
-        mkdir /opt/grafana                                                                                    &&\
-        wget https://grafanarel.s3.amazonaws.com/builds/grafana-4.0.2-1481203731.linux-x64.tar.gz -O /src/grafana.tar.gz &&\
-        tar -xzf /src/grafana.tar.gz -C /opt/grafana --strip-components=1                                     &&\
+RUN     mkdir /src/grafana                                                                                                              &&\
+        mkdir /opt/grafana                                                                                                              &&\
+        wget https://grafanarel.s3.amazonaws.com/builds/grafana-4.0.2-1481203731.linux-x64.tar.gz -O /src/grafana.tar.gz                &&\
+        tar -xzf /src/grafana.tar.gz -C /opt/grafana --strip-components=1                                                               &&\
         rm /src/grafana.tar.gz
 
+#Install Java 8 (logstash)
+RUN     add-apt-repository -y ppa:webupd8team/java      &&\
+        apt-get update                                  &&\
+        echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections &&\
+        apt-get -y install oracle-java8-installer
+
+# Install logstash
+RUN     wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -                                              &&\
+        apt-get install apt-transport-https                                                                                             &&\
+        echo "deb https://artifacts.elastic.co/packages/5.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-5.x.list     &&\
+        apt-get update                                                                                                                  &&\
+        apt-get install logstash
+
+# Install ES
+ENV PATH=$PATH:/usr/share/elasticsearch/bin
+RUN wget -qO - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | sudo apt-key add - && \
+    echo 'deb https://artifacts.elastic.co/packages/5.x/apt stable main' \
+      | tee -a /etc/apt/sources.list.d/elastic-5.x.list && \
+    apt-get update && \
+    apt-get install elasticsearch
+
+#apt-get install --no-install-recommends -y elasticsearch
+
+# Install metricbeat
+RUN     curl -L -O https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-5.2.2-amd64.deb       &&\
+        dpkg -i metricbeat-5.2.2-amd64.deb
+
+# Install hearthbeat
+RUN     curl -L -O https://artifacts.elastic.co/downloads/beats/heartbeat/heartbeat-5.4.0-amd64.deb       &&\
+        dpkg -i heartbeat-5.4.0-amd64.deb                                                               
 
 # ----------------- #
 #   Configuration   #
@@ -84,9 +114,33 @@ ADD     ./grafana/dashboard-loader/dashboard-loader.js /src/dashboard-loader/
 
 # Configure nginx and supervisord
 ADD     ./nginx/nginx.conf /etc/nginx/nginx.conf
-ADD     ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+ADD     ./supervisord.conf /etc/supervisor/supervisord.conf
 
+# Configure metricbeat
+ADD     ./conf/metricbeats.yml /etc/metricbeat/metricbeat.yml
 
+# Configure heartbeat
+ADD     ./conf/heartbeat.yml /etc/heartbeat/heartbeat.yml
+
+# Configure collectD
+ADD     ./conf/collectd.conf /etc/collectd/collectd.conf
+
+# Configure logstash
+ADD     ./conf/logstash.conf /etc/logstash/logstash.conf 
+
+ADD     ./entrypoint.sh /entrypoint.sh 
+
+#Configure ES
+RUN     chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/bin/
+COPY    ./conf/esconfig /usr/share/elasticsearch/config
+RUN     chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/config
+RUN     mkdir /usr/share/elasticsearch/logs
+RUN     chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/logs
+RUN     mkdir /usr/share/elasticsearch/data
+RUN     chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/data
+
+RUN /etc/init.d/heartbeat restart
+RUN /etc/init.d/metricbeat restart
 # ---------------- #
 #   Expose Ports   #
 # ---------------- #
@@ -103,11 +157,13 @@ EXPOSE  8126
 # Graphite web port
 EXPOSE 81
 
-
+# ES port
+EXPOSE 9300
+EXPOSE 9200
 
 # -------- #
 #   Run!   #
 # -------- #
 
-CMD     ["/usr/bin/supervisord"]
-
+#CMD     ["/usr/bin/supervisord"]
+ENTRYPOINT ["sh", "/entrypoint.sh"]
