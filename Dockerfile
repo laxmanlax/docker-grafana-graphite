@@ -154,7 +154,7 @@ RUN /etc/init.d/metricbeat restart
 EXPOSE  80
 
 # StatsD UDP port
-EXPOSE  8125/udp
+EXPOSE  8124/udp
 
 # StatsD Management port
 EXPOSE  8126
