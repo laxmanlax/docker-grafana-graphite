@@ -65,12 +65,12 @@ RUN     wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt
         apt-get install logstash
 
 # Install ES
-ENV PATH=$PATH:/usr/share/elasticsearch/bin
-RUN wget -qO - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | sudo apt-key add - && \
-    echo 'deb https://artifacts.elastic.co/packages/5.x/apt stable main' \
-      | tee -a /etc/apt/sources.list.d/elastic-5.x.list && \
-    apt-get update && \
-    apt-get install elasticsearch
+#ENV PATH=$PATH:/usr/share/elasticsearch/bin
+#RUN wget -qO - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | sudo apt-key add - && \
+#    echo 'deb https://artifacts.elastic.co/packages/5.x/apt stable main' \
+#      | tee -a /etc/apt/sources.list.d/elastic-5.x.list && \
+#    apt-get update && \
+#    apt-get install elasticsearch
 
 #apt-get install --no-install-recommends -y elasticsearch
 
