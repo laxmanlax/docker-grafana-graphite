@@ -136,13 +136,13 @@ ADD     ./conf/logstash.conf /etc/logstash/logstash.conf
 ADD     ./entrypoint.sh /entrypoint.sh 
 
 #Configure ES
-RUN     chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/bin/
-COPY    ./conf/esconfig /usr/share/elasticsearch/config
-RUN     chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/config
-RUN     mkdir /usr/share/elasticsearch/logs
-RUN     chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/logs
-RUN     mkdir /usr/share/elasticsearch/data
-RUN     chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/data
+#RUN     chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/bin/
+#COPY    ./conf/esconfig /usr/share/elasticsearch/config
+#RUN     chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/config
+#RUN     mkdir /usr/share/elasticsearch/logs
+#RUN     chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/logs
+#RUN     mkdir /usr/share/elasticsearch/data
+#RUN     chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/data
 
 RUN /etc/init.d/heartbeat restart
 RUN /etc/init.d/metricbeat restart
