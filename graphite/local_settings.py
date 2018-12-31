@@ -6,6 +6,8 @@
 # Set your local timezone (django will try to figure this out automatically)
 TIME_ZONE = 'UTC'
 
+STATIC_URL = '/content/'
+
 # Setting MEMCACHE_HOSTS to be empty will turn off use of memcached entirely
 #MEMCACHE_HOSTS = ['127.0.0.1:11211']
 
