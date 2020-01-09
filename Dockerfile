@@ -13,7 +13,7 @@ RUN     apt-get -y update &&\
 	gunicorn supervisor nginx-light git wget curl openjdk-8-jre build-essential python-dev libffi-dev
 
 RUN     pip install --upgrade pip
-RUN     pip install Twisted==18.9.0
+RUN     pip install Twisted==19.10.0
 RUN     pip install pytz
 RUN	curl -sL https://deb.nodesource.com/setup_6.x | bash -
 RUN	apt-get install -y nodejs
@@ -42,26 +42,26 @@ RUN     git clone https://github.com/graphite-project/graphite-web.git /src/grap
 # Install StatsD
 RUN     git clone https://github.com/etsy/statsd.git /src/statsd                          &&\
         cd /src/statsd                                                                    &&\
-        git checkout v0.8.0
+        git checkout v0.8.5
 
 
 # Install Grafana
 RUN     mkdir /src/grafana                                                                                    &&\
         mkdir /opt/grafana                                                                                    &&\
-        wget https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana-5.3.2.linux-amd64.tar.gz -O /src/grafana.tar.gz &&\
+        wget https://dl.grafana.com/oss/release/grafana-6.5.2.linux-amd64.tar.gz -O /src/grafana.tar.gz &&\
         tar -xzf /src/grafana.tar.gz -C /opt/grafana --strip-components=1                                     &&\
         rm /src/grafana.tar.gz
 
-#Install Java 8 (logstash)
+#Install Java 11 (logstash)
 RUN     add-apt-repository -y ppa:webupd8team/java      &&\
         apt-get update                                  &&\
         echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-selections &&\
-        apt-get -y install oracle-java8-installer
+        apt-get -y install oracle-java11-installer
 
 # Install logstash
 RUN     wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add -                                              &&\
         apt-get install apt-transport-https                                                                    &&\
-        echo "deb https://artifacts.elastic.co/packages/6.x/apt stable main" | tee -a /etc/apt/sources.list.d/elastic-6.x.list     &&\
+        echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" | tee -a /etc/apt/sources.list.d/elastic-7.x.list     &&\
         apt-get update                                                                                         &&\
         apt-get install logstash
 
@@ -80,12 +80,12 @@ RUN     /usr/share/logstash/bin/logstash-plugin install logstash-output-statsd
 #apt-get install --no-install-recommends -y elasticsearch
 
 # Install metricbeat
-RUN     curl -L -O https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-6.4.2-amd64.deb       &&\
-        dpkg -i metricbeat-6.4.2-amd64.deb
+RUN     curl -L -O https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-7.5.1-amd64.deb       &&\
+        dpkg -i metricbeat-7.5.1-amd64.deb
 
 # Install hearthbeat
-RUN     curl -L -O https://artifacts.elastic.co/downloads/beats/heartbeat/heartbeat-6.4.2-amd64.deb       &&\
-        dpkg -i heartbeat-6.4.2-amd64.deb                                                               
+RUN     curl -L -O https://artifacts.elastic.co/downloads/beats/heartbeat/heartbeat-7.5.1-amd64.deb       &&\
+        dpkg -i heartbeat-7.5.1-amd64.deb                                                               
 
 # ----------------- #
 #   Configuration   #
