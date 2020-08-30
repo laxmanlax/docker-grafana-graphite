@@ -1,4 +1,4 @@
-FROM     ubuntu:16.04
+FROM     ubuntu:18.04
 
 # ---------------- #
 #   Installation   #
@@ -10,13 +10,15 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN     apt-get -y update &&\ 
 	apt-get -y install software-properties-common python-django-tagging python-simplejson \
 	python-memcache python-ldap python-cairo python-pysqlite2 python-pip \
-	gunicorn supervisor nginx-light git wget curl openjdk-8-jre build-essential python-dev libffi-dev
+	gunicorn supervisor nginx-light git wget curl openjdk-8-jre build-essential python-dev libffi-dev python3 python3-pip graphite-web graphite-carbon python-whisper 
 
 RUN     pip install --upgrade pip
-RUN     pip install Twisted==18.9.0
+RUN     pip install Twisted==19.10.0
 RUN     pip install pytz
+
 RUN	curl -sL https://deb.nodesource.com/setup_6.x | bash -
-RUN	apt-get install -y nodejs
+RUN	apt install -y nodejs
+RUN     apt install -y npm
 RUN	npm install -g wizzy
 
 # Checkout the stable branches of Graphite, Carbon and Whisper and install from there
@@ -24,44 +26,40 @@ RUN     mkdir /src
 RUN     git clone https://github.com/graphite-project/whisper.git /src/whisper            &&\
         cd /src/whisper                                                                   &&\
         git checkout 1.1.x                                                                &&\
-        python setup.py install
+        python3 setup.py install
 
 RUN     git clone https://github.com/graphite-project/carbon.git /src/carbon              &&\
         cd /src/carbon                                                                    &&\
         git checkout 1.1.x                                                                &&\
-        python setup.py install
+        python3 setup.py install
 
 
 RUN     git clone https://github.com/graphite-project/graphite-web.git /src/graphite-web  &&\
         cd /src/graphite-web                                                              &&\
-	git checkout 1.1.x								  &&\
-        python setup.py install                                                           &&\
-        pip install -r requirements.txt                                                   &&\
-        python check-dependencies.py
+        git checkout 1.1.x                                                                &&\
+        python3 setup.py install                                                           &&\
+        pip3 install -r requirements.txt                                                   &&\
+        python3 check-dependencies.py
 
 # Install StatsD
 RUN     git clone https://github.com/etsy/statsd.git /src/statsd                          &&\
         cd /src/statsd                                                                    &&\
-        git checkout v0.8.0
-
+        git checkout v0.8.6
 
 # Install Grafana
 RUN     mkdir /src/grafana                                                                                    &&\
         mkdir /opt/grafana                                                                                    &&\
-        wget https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana-5.3.2.linux-amd64.tar.gz -O /src/grafana.tar.gz &&\
+        wget https://dl.grafana.com/oss/release/grafana-7.1.1.linux-amd64.tar.gz -O /src/grafana.tar.gz &&\
         tar -xzf /src/grafana.tar.gz -C /opt/grafana --strip-components=1                                     &&\
         rm /src/grafana.tar.gz
 
-#Install Java 8 (logstash)
-RUN     add-apt-repository -y ppa:webupd8team/java      &&\
-        apt-get update                                  &&\
-        echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-selections &&\
-        apt-get -y install oracle-java8-installer
+#Install Java 11 (logstash)
+RUN     apt-get -y install openjdk-11-jdk
 
 # Install logstash
 RUN     wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add -                                              &&\
         apt-get install apt-transport-https                                                                    &&\
-        echo "deb https://artifacts.elastic.co/packages/6.x/apt stable main" | tee -a /etc/apt/sources.list.d/elastic-6.x.list     &&\
+        echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" | tee -a /etc/apt/sources.list.d/elastic-7.x.list     &&\
         apt-get update                                                                                         &&\
         apt-get install logstash
 
@@ -80,12 +78,12 @@ RUN     /usr/share/logstash/bin/logstash-plugin install logstash-output-statsd
 #apt-get install --no-install-recommends -y elasticsearch
 
 # Install metricbeat
-RUN     curl -L -O https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-6.4.2-amd64.deb       &&\
-        dpkg -i metricbeat-6.4.2-amd64.deb
+RUN     curl -L -O https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-7.5.1-amd64.deb       &&\
+        dpkg -i metricbeat-7.5.1-amd64.deb
 
 # Install hearthbeat
-RUN     curl -L -O https://artifacts.elastic.co/downloads/beats/heartbeat/heartbeat-6.4.2-amd64.deb       &&\
-        dpkg -i heartbeat-6.4.2-amd64.deb                                                               
+RUN     curl -L -O https://artifacts.elastic.co/downloads/beats/heartbeat/heartbeat-7.5.1-amd64.deb       &&\
+        dpkg -i heartbeat-7.5.1-amd64.deb                                                               
 
 # ----------------- #
 #   Configuration   #
